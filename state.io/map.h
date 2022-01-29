@@ -1,0 +1,4 @@
+#ifndef UNTITLED_MAP_H
+#define UNTITLED_MAP_H
+
+#endif //UNTITLED_MAP_H
