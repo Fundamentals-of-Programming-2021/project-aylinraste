@@ -75,14 +75,14 @@ build cmake_object_order_depends_target_untitled: phony || CMakeFiles/untitled.d
 build CMakeFiles/untitled.dir/main.c.o: C_COMPILER__untitled_Debug /Users/aylinrasteh/CLionProjects/state.io/main.c || cmake_object_order_depends_target_untitled
   DEP_FILE = CMakeFiles/untitled.dir/main.c.o.d
   FLAGS = -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu11
-  INCLUDES = -I/usr/local/Cellar/sdl2/2.0.18/include -I/usr/local/Cellar/sdl2_gfx/1.0.4/include -I/usr/local/Cellar/sdl2_ttf/2.0.18/include -I/usr/local/Cellar/sdl2_image/2.0.5/include
+  INCLUDES = -I/usr/local/Cellar/sdl2/2.0.18/include -I/usr/local/Cellar/sdl2_gfx/1.0.4/include -I/usr/local/Cellar/sdl2_ttf/2.0.18/include -I/usr/local/Cellar/sdl2_image/2.0.5/include -I/usr/local/Cellar/sdl2_mixer/2.0.4_3/include
   OBJECT_DIR = CMakeFiles/untitled.dir
   OBJECT_FILE_DIR = CMakeFiles/untitled.dir
 
 build CMakeFiles/untitled.dir/map.c.o: C_COMPILER__untitled_Debug /Users/aylinrasteh/CLionProjects/state.io/map.c || cmake_object_order_depends_target_untitled
   DEP_FILE = CMakeFiles/untitled.dir/map.c.o.d
   FLAGS = -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6 -std=gnu11
-  INCLUDES = -I/usr/local/Cellar/sdl2/2.0.18/include -I/usr/local/Cellar/sdl2_gfx/1.0.4/include -I/usr/local/Cellar/sdl2_ttf/2.0.18/include -I/usr/local/Cellar/sdl2_image/2.0.5/include
+  INCLUDES = -I/usr/local/Cellar/sdl2/2.0.18/include -I/usr/local/Cellar/sdl2_gfx/1.0.4/include -I/usr/local/Cellar/sdl2_ttf/2.0.18/include -I/usr/local/Cellar/sdl2_image/2.0.5/include -I/usr/local/Cellar/sdl2_mixer/2.0.4_3/include
   OBJECT_DIR = CMakeFiles/untitled.dir
   OBJECT_FILE_DIR = CMakeFiles/untitled.dir
 
@@ -96,8 +96,8 @@ build CMakeFiles/untitled.dir/map.c.o: C_COMPILER__untitled_Debug /Users/aylinra
 
 build untitled: C_EXECUTABLE_LINKER__untitled_Debug CMakeFiles/untitled.dir/main.c.o CMakeFiles/untitled.dir/map.c.o
   FLAGS = -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.6
-  LINK_LIBRARIES = -Wl,-rpath,/usr/local/Cellar/sdl2_gfx/1.0.4/lib -Wl,-rpath,/usr/local/Cellar/sdl2/2.0.18/lib -Wl,-rpath,/usr/local/Cellar/sdl2_ttf/2.0.18/lib -Wl,-rpath,/usr/local/Cellar/sdl2_image/2.0.5/lib  -lm  -lSDL2  -lSDL2_gfx
-  LINK_PATH = -L/usr/local/Cellar/sdl2_gfx/1.0.4/lib   -L/usr/local/Cellar/sdl2/2.0.18/lib   -L/usr/local/Cellar/sdl2_ttf/2.0.18/lib   -L/usr/local/Cellar/sdl2_image/2.0.5/lib
+  LINK_LIBRARIES = -Wl,-rpath,/usr/local/Cellar/sdl2_gfx/1.0.4/lib -Wl,-rpath,/usr/local/Cellar/sdl2/2.0.18/lib -Wl,-rpath,/usr/local/Cellar/sdl2_ttf/2.0.18/lib -Wl,-rpath,/usr/local/Cellar/sdl2_image/2.0.5/lib -Wl,-rpath,/usr/local/Cellar/sdl2_mixer/2.0.4_3/lib  -lm  -lSDL2  -lSDL2_gfx  -lSDL2_image  -lSDL2_ttf  -lSDL2_mixer
+  LINK_PATH = -L/usr/local/Cellar/sdl2_gfx/1.0.4/lib   -L/usr/local/Cellar/sdl2/2.0.18/lib   -L/usr/local/Cellar/sdl2_ttf/2.0.18/lib   -L/usr/local/Cellar/sdl2_image/2.0.5/lib   -L/usr/local/Cellar/sdl2_mixer/2.0.4_3/lib
   OBJECT_DIR = CMakeFiles/untitled.dir
   POST_BUILD = :
   PRE_LINK = :
