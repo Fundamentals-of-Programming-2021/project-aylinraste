@@ -211,7 +211,7 @@ void saveclick(double x, double y , int *start, int *end)
                 *start = -1;
                 *end= -1;
             }
-            printf("%d %d\n", *start, *end);
+//            printf("%d %d\n", *start, *end);
             return;
         }
     }
@@ -230,15 +230,17 @@ void generate_soldier(int c)
 
 void addattail(struct sarbaz *head, double x0, double y0, int i)
 {
+    if (bazi[i].counter==bazi[i].nsarbaz)
+        return;
     while(head->next != NULL)
     {
         head = head->next;
-        printf ("1 you\n");
+//        printf ("1 you\n");
     }
     head->next = (struct sarbaz*)(malloc(sizeof(struct sarbaz)));
     head->next->x = bazi[i].start.x;
     head->next->y = bazi[i].start.y;
-    printf("%lf %lf\n", head-> x, head->y );
+//    printf("%lf %lf\n", head-> x, head->y );
     head->next->next = NULL;
     bazi[i].counter++;
     bazi[i].current=*head;
@@ -258,7 +260,8 @@ struct sarbaz* delete_from_head(struct sarbaz* head, int i)
         else
         {
             center[bazi[i].e].soldiers--;
-            if (center[bazi[i].e].soldiers==0)
+            center[bazi[i].e].rate=0;
+            if (center[bazi[i].e].soldiers<=0)
             {
                 center[bazi[i].e].color = bazi[i].start.color;
             }
@@ -271,18 +274,25 @@ void ziadkon(struct sarbaz *head, int i)
 {
     while(head != NULL )
     {
-        if (bazi[i].start.x<bazi[i].end.x)
+        printf("%lf %lf %lf %lf\n", bazi[i].start.x, bazi[i].end.x, bazi[i].start.y, bazi[i].end.y );
+        if (bazi[i].start.x-bazi[i].end.x<-1)
         {
             head->x += bazi[i].rate;
             head->y += bazi[i].rate * bazi[i].shib;
         }
-        else if (bazi[i].start.x>bazi[i].end.x)
+        else if (bazi[i].start.x-bazi[i].end.x>1)
         {
             head->x -= bazi[i].rate;
             head->y -= bazi[i].rate * bazi[i].shib;
         }
         else
-            head->y += bazi[i].rate;
+        {
+            if (bazi[i].start.y<bazi[i].end.y)
+                head->y += bazi[i].rate;
+            if (bazi[i].start.y>bazi[i].end.y)
+                head->y -= bazi[i].rate;
+            printf("aaa\n");
+        }
         printf ("mmmm%lf %lf\n", head->x, head->y);
         head = head->next;
     }
@@ -293,18 +303,20 @@ int checkkon(struct sarbaz *head, int i)
 //    printf("c%lf %lf %lf %lf\n",bazi[i].start.x, bazi[i].start.y, head->x, head->y);
     while (head->next !=NULL)
         head=head->next;
-    if ((head->x-bazi[i].start.x<10 && head->x-bazi[i].start.x>-10))
+    if (pow(head->x-bazi[i].start.x,2)+pow(head->y-bazi[i].start.y,2)<=200)
         return 0;
 //    if (bazi[i].current.x-bazi[i].start.x <10 || bazi[i].current.y-bazi[i].start.y <10)
 //        return 0;
-    printf("abc\n");
+//    printf("abc\n");
     return 1;
 }
 
 int checknakon(struct sarbaz *head, int i)
 {
-    if (pow(head->x-bazi[i].end.x,2)+ pow(head->y-bazi[i].end.y,2)<=64)
+//    printf("opopop%lf %lf\n", head->x, head->y);
+    if (pow(head->x-bazi[i].end.x,2)+pow(head->y-bazi[i].end.y,2)<=64)
     {
+//        printf("hello\n");
         return 0;
     }
     return 1;
@@ -313,10 +325,11 @@ int checknakon(struct sarbaz *head, int i)
 void hamle(SDL_Renderer *renderer, int c, int i)
 {
     printf("a%d b%d\n", bazi[i].nsarbaz, bazi[i].counter);
-    if (!center[bazi[i].s].soldiers)
+    if (bazi[i].head==NULL && bazi[i].counter!=0)
     {
         bazi[i].nsarbaz=0;
-        center[bazi[i].s].rate=20;
+        center[bazi[i].s].rate=15;
+        center[bazi[i].e].rate=15;
         return;
     }
     if (bazi[i].counter==0)
@@ -324,25 +337,31 @@ void hamle(SDL_Renderer *renderer, int c, int i)
         bazi[i].head = (struct sarbaz*)(malloc(sizeof(struct sarbaz)));
         bazi[i].head->x = bazi[i].start.x;
         bazi[i].head->y = bazi[i].start.y;
-        printf("%lf %lf\n", bazi[i].head-> x, bazi[i].head->y );
+//        printf("%lf %lf\n", bazi[i].head-> x, bazi[i].head->y );
         bazi[i].head->next = NULL;
         bazi[i].counter++;
         bazi[i].current=*bazi[i].head;
+        center[bazi[i].s].soldiers--;
     }
-    else if (checkkon(bazi[i].head, i))
+    if (checkkon(bazi[i].head, i))
     {
         addattail(bazi[i].head, bazi[i].start.x, bazi[i].start.y, i);
-        printf("fuck\n");
+//        printf("fuck\n");
     }
-    if (!checkkon(bazi[i].head, i))
-        printf("gav\n");
+//    if (!checkkon(bazi[i].head, i))
+//        printf("gav\n");
     if (!checknakon(bazi[i].head, i))
     {
         bazi[i].head= delete_from_head(bazi[i].head, i);
     }
-
     ziadkon(bazi[i].head, i);
-    printf("khar\n");
+//    printf("khar\n");
+    struct sarbaz *h=bazi[i].head;
+    while (h != NULL) {
+        aaellipseRGBA(renderer, h->x, h->y, 5, 5, 255, 255, 255, 255);
+        h=h->next;
+    }
+
 }
 
 int main()
@@ -360,7 +379,7 @@ int main()
     for (int i=0; i<numberofareas; i++)
     {
         center[i].soldiers = 20;
-        center[i].rate=20;
+        center[i].rate=15;
     }
     makecolors(color);
     while (number<numberofareas)
@@ -390,10 +409,6 @@ int main()
         SDL_RenderCopy(renderer, img, NULL, &andaze);
         bekesh(renderer, center);
         SDL_PollEvent(&event);
-        SDL_RenderPresent(renderer);
-        generate_soldier(c);
-        if (event.type == SDL_QUIT)
-            running=false;
         if (event.type == SDL_MOUSEBUTTONDOWN)
             saveclick(event.motion.x, event.motion.y, &start, &end);
         if (start!=-1 && end!=-1)
@@ -425,6 +440,10 @@ int main()
             if (bazi[i].nsarbaz!=0)
                 hamle(renderer, c, i);
         }
+        SDL_RenderPresent(renderer);
+        generate_soldier(c);
+        if (event.type == SDL_QUIT)
+            running=false;
     }
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
