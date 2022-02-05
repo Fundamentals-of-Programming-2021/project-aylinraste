@@ -244,7 +244,8 @@ void addattail(struct sarbaz *head, double x0, double y0, int i)
     head->next->next = NULL;
     bazi[i].counter++;
     bazi[i].current=*head;
-    center[bazi[i].s].soldiers--;
+    if (center[bazi[i].s].soldiers>0 && center[bazi[i].s].color==bazi[i].start.color)
+        center[bazi[i].s].soldiers--;
 }
 
 struct sarbaz* delete_from_head(struct sarbaz* head, int i)
@@ -259,7 +260,8 @@ struct sarbaz* delete_from_head(struct sarbaz* head, int i)
         }
         else
         {
-            center[bazi[i].e].soldiers--;
+            if (center[bazi[i].e].soldiers>0)
+                center[bazi[i].e].soldiers--;
             center[bazi[i].e].rate=0;
             if (center[bazi[i].e].soldiers<=0)
             {
@@ -277,13 +279,13 @@ void ziadkon(struct sarbaz *head, int i)
         printf("%lf %lf %lf %lf\n", bazi[i].start.x, bazi[i].end.x, bazi[i].start.y, bazi[i].end.y );
         if (bazi[i].start.x-bazi[i].end.x<-1)
         {
-            head->x += bazi[i].rate;
-            head->y += bazi[i].rate * bazi[i].shib;
+            head->x += bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1);
+            head->y += bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
         }
         else if (bazi[i].start.x-bazi[i].end.x>1)
         {
-            head->x -= bazi[i].rate;
-            head->y -= bazi[i].rate * bazi[i].shib;
+            head->x -= bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1);
+            head->y -= bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
         }
         else
         {
@@ -358,10 +360,38 @@ void hamle(SDL_Renderer *renderer, int c, int i)
 //    printf("khar\n");
     struct sarbaz *h=bazi[i].head;
     while (h != NULL) {
-        aaellipseRGBA(renderer, h->x, h->y, 5, 5, 255, 255, 255, 255);
+        aaellipseRGBA(renderer, h->x, h->y, 5, 5, 0,0,0,255);
         h=h->next;
     }
 
+}
+
+int same(struct sarbaz *head1, struct sarbaz *head2)
+{
+    while (head2->next!=NULL)
+    {
+        if (pow(head1->next->x-head2->next->x, 2)+pow(head1->next->y-head2->next->y, 2)<100)
+        {
+            head2->next = head2->next->next;
+            return 1;
+        }
+        head2=head2->next;
+    }
+    return 0;
+}
+
+void is_same(int i, int j, struct sarbaz *headi, struct sarbaz *headj)
+{
+    while (headj->next!=NULL && bazi[i].head !=NULL)
+    {
+        if (pow(bazi[i].head->x-headj->next->x, 2)+pow(bazi[i].head->y-headj->next->y, 2)<100 && bazi[i].start.color != bazi[j].start.color)
+        {
+            headj->next=headj->next->next;
+            bazi[i].head=bazi[i].head->next;
+            return;
+        }
+        headj=headj->next;
+    }
 }
 
 int main()
@@ -438,12 +468,28 @@ int main()
         for (int i=0; i<100; i++)
         {
             if (bazi[i].nsarbaz!=0)
+            {
                 hamle(renderer, c, i);
+                for (int j=0; j<100; j++)
+                {
+                    if (i!=j)
+                    {
+                        if (bazi[j].nsarbaz != 0)
+                        {
+                            struct sarbaz *h= (struct sarbaz*)malloc(sizeof (struct sarbaz)), *m=(struct sarbaz*)malloc(sizeof (struct sarbaz));
+                            h->next = bazi[j].head;
+                            m->next  =bazi[i].head;
+                            is_same(i, j, m, h);
+                            bazi[j].head = h->next;
+                        }
+                    }
+                }
+            }
         }
         SDL_RenderPresent(renderer);
-        generate_soldier(c);
         if (event.type == SDL_QUIT)
             running=false;
+        generate_soldier(c);
     }
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
