@@ -16,6 +16,9 @@ struct markaz
     int soldiers;
     uint32_t color;
     int rate;
+    int speed;
+    int max;
+    int r;
 };
 
 struct sarbaz
@@ -32,9 +35,17 @@ struct fight
     double shib;
     int nsarbaz;
     int counter;
-    int rate;
+//    int rate;
     struct sarbaz current;
     struct sarbaz *head;
+};
+
+struct potion
+{
+    double x;
+    double y;
+    uint32_t color;
+    int type;
 };
 
 const int FPS = 60;
@@ -48,6 +59,8 @@ int numberofareas, numberofplayers, number=0;
 struct markaz *center;
 struct fight *bazi;
 struct sarbaz *soldier;
+struct potion majoon;
+bool nist=true;
 int mokhtasat[SCREEN_WIDTH][SCREEN_HEIGHT]={0};
 bool running=true;
 
@@ -139,8 +152,8 @@ void bekesh (SDL_Renderer *renderer, struct markaz center[])
         SDL_RenderDrawLine(renderer, x+s* sqrt(3), y, x+s* sqrt(3), y+s);
         SDL_RenderDrawLine(renderer, x, y+s, x+s/2* sqrt(3), y+1.5*s);
         SDL_RenderDrawLine(renderer, x+s* sqrt(3), y+s, x+s*0.5* sqrt(3), y+s*1.5);
-        aaellipseRGBA(renderer, center[i].x, center[i].y, 20, 20, 255, 255, 255, 255);
-        aaellipseRGBA(renderer, center[i].x, center[i].y, 17, 17, 255, 255, 255, 255);
+        aaellipseRGBA(renderer, center[i].x, center[i].y, center[i].r, center[i].r, 255, 255, 255, 255);
+        aaellipseRGBA(renderer, center[i].x, center[i].y, center[i].r-3, center[i].r-3, 255, 255, 255, 255);
         SDL_RenderCopy(renderer , tex, NULL, &test);
         SDL_FreeSurface(adads);
         SDL_DestroyTexture(tex);
@@ -166,7 +179,7 @@ void draw (SDL_Renderer *renderer, double x, double y)
     if(number<numberofareas)
         generate_random(renderer, x, y);
     else
-        return ;
+        return;
 }
 
 void generate_random(SDL_Renderer *renderer, double x, double y)
@@ -202,8 +215,18 @@ void saveclick(double x, double y , int *start, int *end)
     {
         if (pow(x-center[i].x, 2)+ pow(y-center[i].y, 2)<=400)
         {
-            if (*start==-1 && center[i].color !=color[8])
+            int k=1;
+            for (int j=0; j<100 && *start==-1; j++)
+            {
+                if ( bazi[j].nsarbaz!=0  && (bazi[j].start.x== center[i].x && bazi[j].start.y== center[i].y))
+                    k=0;
+            }
+            if (*start==-1 && center[i].color !=color[8] && k)
+            {
+//                printf("hi%d\n", bazi[j].nsarbaz);
                 *start = i;
+//                return;
+            }
             else if (*start!=-1 && i!=*start)
                 *end = i;
             else
@@ -219,11 +242,32 @@ void saveclick(double x, double y , int *start, int *end)
     *end = -1;
 }
 
+void faal(int i)
+{
+    struct sarbaz *head=bazi[i].head;
+    while (head!=NULL)
+    {
+//        printf("hello : %lf %lf %lf %lf\n",head->x, majoon.x, head->y, majoon.y);
+        if (pow(head->x-majoon.x, 2) + pow(head->y-majoon.y, 2)<=64)
+        {
+            nist=false;
+            majoon.x=0;
+            majoon.y=0;
+            return;
+        }
+        head=head->next;
+    }
+}
+
 void generate_soldier(int c)
 {
     for (int i=0; i<numberofareas; i++)
     {
-        if (center[i].color != color[8] && center[i].soldiers<80 && center[i].rate!=0 && c%center[i].rate==0)
+//        if (center[i].color==color[8])
+//            center[i].max=20;
+//        else
+//            center[i].max=80;
+        if (center[i].soldiers<center[i].max && center[i].rate!=0 && c%center[i].rate==0)
             center[i].soldiers++;
     }
 }
@@ -266,6 +310,8 @@ struct sarbaz* delete_from_head(struct sarbaz* head, int i)
             if (center[bazi[i].e].soldiers<=0)
             {
                 center[bazi[i].e].color = bazi[i].start.color;
+                if(bazi[i].end.color==color[8])
+                    center[bazi[i].e].max=80;
             }
         }
         return new_head;
@@ -276,26 +322,26 @@ void ziadkon(struct sarbaz *head, int i)
 {
     while(head != NULL )
     {
-        printf("%lf %lf %lf %lf\n", bazi[i].start.x, bazi[i].end.x, bazi[i].start.y, bazi[i].end.y );
+//        printf("%lf %lf %lf %lf\n", bazi[i].start.x, bazi[i].end.x, bazi[i].start.y, bazi[i].end.y );
         if (bazi[i].start.x-bazi[i].end.x<-1)
         {
-            head->x += bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1);
-            head->y += bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
+            head->x += center[bazi[i].s].speed * 1/sqrt(pow(bazi[i].shib,2)+1);
+            head->y += center[bazi[i].s].speed * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
         }
         else if (bazi[i].start.x-bazi[i].end.x>1)
         {
-            head->x -= bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1);
-            head->y -= bazi[i].rate * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
+            head->x -= center[bazi[i].s].speed * 1/sqrt(pow(bazi[i].shib,2)+1);
+            head->y -= center[bazi[i].s].speed * 1/sqrt(pow(bazi[i].shib,2)+1) * bazi[i].shib;
         }
         else
         {
             if (bazi[i].start.y<bazi[i].end.y)
-                head->y += bazi[i].rate;
+                head->y += center[bazi[i].s].speed;
             if (bazi[i].start.y>bazi[i].end.y)
-                head->y -= bazi[i].rate;
-            printf("aaa\n");
+                head->y -= center[bazi[i].s].speed;
+//            printf("aaa\n");
         }
-        printf ("mmmm%lf %lf\n", head->x, head->y);
+//        printf ("mmmm%lf %lf\n", head->x, head->y);
         head = head->next;
     }
 }
@@ -326,7 +372,7 @@ int checknakon(struct sarbaz *head, int i)
 
 void hamle(SDL_Renderer *renderer, int c, int i)
 {
-    printf("a%d b%d\n", bazi[i].nsarbaz, bazi[i].counter);
+//    printf("a%d b%d\n", bazi[i].nsarbaz, bazi[i].counter);
     if (bazi[i].head==NULL && bazi[i].counter!=0)
     {
         bazi[i].nsarbaz=0;
@@ -342,7 +388,7 @@ void hamle(SDL_Renderer *renderer, int c, int i)
 //        printf("%lf %lf\n", bazi[i].head-> x, bazi[i].head->y );
         bazi[i].head->next = NULL;
         bazi[i].counter++;
-        bazi[i].current=*bazi[i].head;
+//        bazi[i].current=*bazi[i].head;
         center[bazi[i].s].soldiers--;
     }
     if (checkkon(bazi[i].head, i))
@@ -357,27 +403,15 @@ void hamle(SDL_Renderer *renderer, int c, int i)
         bazi[i].head= delete_from_head(bazi[i].head, i);
     }
     ziadkon(bazi[i].head, i);
+    faal(i);
 //    printf("khar\n");
     struct sarbaz *h=bazi[i].head;
-    while (h != NULL) {
+    while (h != NULL)
+    {
         aaellipseRGBA(renderer, h->x, h->y, 5, 5, 0,0,0,255);
+        filledEllipseColor(renderer, h->x, h->y, 4, 4, bazi[i].start.color);
         h=h->next;
     }
-
-}
-
-int same(struct sarbaz *head1, struct sarbaz *head2)
-{
-    while (head2->next!=NULL)
-    {
-        if (pow(head1->next->x-head2->next->x, 2)+pow(head1->next->y-head2->next->y, 2)<100)
-        {
-            head2->next = head2->next->next;
-            return 1;
-        }
-        head2=head2->next;
-    }
-    return 0;
 }
 
 void is_same(int i, int j, struct sarbaz *headi, struct sarbaz *headj)
@@ -394,6 +428,72 @@ void is_same(int i, int j, struct sarbaz *headi, struct sarbaz *headj)
     }
 }
 
+void randomareas (SDL_Renderer *renderer)
+{
+    nist=true;
+    srand(time(NULL));
+    int one, two;
+    one = rand()%numberofareas;
+    two =rand()%numberofareas;
+    while (two==one || (center[one].color==center[two].color && center[one].color==color[8]))
+        two =rand()%numberofareas;
+    majoon.type=rand()%4;
+    majoon.x= (center[one].x+center[two].x)/2;
+    majoon.y= (center[one].y+center[two].y)/2;
+    printf ("%majoon %d %lf %lf\n", majoon.type, majoon.x, majoon.y);
+}
+
+void makemajoon(SDL_Renderer *renderer)
+{
+    if (nist)
+    {
+        SDL_Rect size = {majoon.x - 25, majoon.y - 25, 50, 50};
+        SDL_Surface *m = SDL_LoadBMP("m3.bmp");
+        if (!m)
+            printf("Failed to load image at%s", SDL_GetError());
+        SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, m);
+        SDL_RenderCopy(renderer, img, NULL, &size);
+        SDL_FreeSurface(m);
+        SDL_DestroyTexture(img);
+    }
+}
+
+void m0()
+{
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (majoon.color==center[i].color)
+            center[i].speed*=2;
+    }
+}
+
+void m1()
+{
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (majoon.color!=center[i].color)
+            center[i].speed/=2;
+    }
+}
+
+void m2()
+{
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (majoon.color==center[i].color)
+            center[i].max=10000;
+    }
+}
+
+void m3()
+{
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (majoon.color==center[i].color)
+            center[i].rate*=2;
+    }
+}
+
 int main()
 {
     srand(time(NULL));
@@ -402,7 +502,7 @@ int main()
     SDL_Window *window = SDL_CreateWindow("Maps",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH,SCREEN_HEIGHT,SDL_WINDOW_OPENGL);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
     //map
-    int a = rand() % (SCREEN_WIDTH - s * 2), b = rand() % (SCREEN_HEIGHT - 2 * s) + s * 0.5, c=0, start=-1, end=-1;
+    int a = rand() % (SCREEN_WIDTH - s * 2), b = rand() % (SCREEN_HEIGHT-200 - 2 * s) + s * 0.5, c=0, start=-1, end=-1;
     double x = a * 1.0, y = b * 1.0;
     scanf("%d %d", &numberofareas, &numberofplayers);
     center = malloc(sizeof(struct markaz) * numberofareas);
@@ -410,13 +510,24 @@ int main()
     {
         center[i].soldiers = 20;
         center[i].rate=15;
+        center[i].r=20;
     }
     makecolors(color);
+    draw(renderer, x, y);
     while (number<numberofareas)
     {
-        draw(renderer, x, y);
-        a = rand() % (SCREEN_WIDTH - s * 2), b = rand() % (SCREEN_HEIGHT - 2 * s) + s * 0.5;
-        x = a * 1.0, y = b * 1.0;
+        generate_random(renderer, x, y);
+//        draw(renderer, x, y);
+//        a = rand() % (SCREEN_WIDTH - s * 2), b = rand() % (SCREEN_HEIGHT - 2 * s) + s * 0.5;
+//        x = a * 1.0, y = b * 1.0;
+    }
+    for (int i=0; i<numberofareas; i++)
+    {
+        center[i].speed = 4;
+        if (center[i].color==color[8])
+            center[i].max=20;
+        else
+            center[i].max=80;
     }
     //background
     SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
@@ -424,13 +535,13 @@ int main()
     if (!background)
         printf("Failed to load image at%s", SDL_GetError());
     SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, background);
-    SDL_Event event;
     bazi = malloc(sizeof (struct fight)*100);
     for (int i=0; i<100; i++)
     {
         bazi[i].head = NULL;
         bazi[i].nsarbaz=0;
     }
+    SDL_Event event;
     //running
     while (running)
     {
@@ -457,7 +568,7 @@ int main()
                 bazi[i].shib=0;
             bazi[i].nsarbaz=center[start].soldiers;
             bazi[i].counter=0;
-            bazi[i].rate=4;
+//            bazi[i].rate=4;
             center[start].rate=0;
             printf("%lf %lf %lf %lf\n",center[start].x, center[start].y, bazi[i].start.x, bazi[i].start.y);
 //            if (bazi[i].nsarbaz==0)
@@ -470,6 +581,7 @@ int main()
             if (bazi[i].nsarbaz!=0)
             {
                 hamle(renderer, c, i);
+
                 for (int j=0; j<100; j++)
                 {
                     if (i!=j)
@@ -486,11 +598,26 @@ int main()
                 }
             }
         }
+        if (c%400==0)
+        {
+            randomareas(renderer);
+        }
+        if (c%400>=0 && c%400<=300 && c>=400)
+            makemajoon(renderer);
+            //filledTrigonRGBA(renderer, majoon.x-12, majoon.y+ sqrt(3)*4, majoon.x+12, majoon.y+sqrt(3)*4, majoon.x, majoon.y-sqrt(3)*8, 0,0,0,255);
+//        for (int i=0; i<numberofareas; i++)
+//            if (pow(event.motion.x-center[i].x,2)+ pow(event.motion.y-center[i].y, 2)<=400)
+//                center[i].r=30;
+//        for (int i=0; i<numberofareas; i++)
+//            if (pow(event.motion.x-center[i].x,2)+ pow(event.motion.y-center[i].y, 2)>400)
+//                center[i].r=20;
         SDL_RenderPresent(renderer);
         if (event.type == SDL_QUIT)
             running=false;
         generate_soldier(c);
     }
+    SDL_DestroyTexture(img);
+    SDL_FreeSurface(background);
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
