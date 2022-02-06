@@ -19,6 +19,8 @@ struct markaz
     int speed;
     int max;
     int r;
+    bool majoon;
+    int type;
 };
 
 struct sarbaz
@@ -46,6 +48,14 @@ struct potion
     double y;
     uint32_t color;
     int type;
+    int whichone;
+};
+
+struct active
+{
+    int type;
+    int color;
+    int time;
 };
 
 const int FPS = 60;
@@ -60,6 +70,7 @@ struct markaz *center;
 struct fight *bazi;
 struct sarbaz *soldier;
 struct potion majoon;
+struct active potion1, potion2;
 bool nist=true;
 int mokhtasat[SCREEN_WIDTH][SCREEN_HEIGHT]={0};
 bool running=true;
@@ -76,6 +87,7 @@ void init()
 }
 
 void generate_random(SDL_Renderer *renderer, double x, double y);
+
 
 void txtRGBA(SDL_Renderer *renderer,int x,int y,const char * text,int font_size,int R,int G,int B, int A)
 {
@@ -127,6 +139,126 @@ void find_center( double x, double y, uint32_t target)
     mokhtasat[(int)x][(int)y]++;
 }
 
+
+void m0(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].speed*=2;
+}
+
+void m00(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].speed/=2;
+}
+
+void m1(int i)
+{
+    if (majoon.color!=center[i].color)
+        center[i].speed/=2;
+}
+
+void m11(int i)
+{
+    if (majoon.color!=center[i].color)
+        center[i].speed*=2;
+}
+
+void m2(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].max=10000;
+}
+void m22(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].max=80;
+}
+
+void m3(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].rate/=2;
+}
+
+void m33(int i)
+{
+    if (majoon.color==center[i].color)
+        center[i].rate*=2;
+}
+
+void qheyrfaal()
+{
+    if (potion1.time>=300)
+    {
+        for (int i=0; i<numberofareas; i++)
+        {
+            if (center[i].color==potion1.color)
+            {
+                if (center[i].type==0)
+                    m00(i);
+                if (center[i].type==1)
+                    m11(i);
+                if (center[i].type==2)
+                    m22(i);
+                if (center[i].type==3)
+                    m33(i);
+            }
+            potion1.color=0;
+        }
+    }
+    if (potion2.time>=300) {
+        for (int i = 0; i < numberofareas; i++)
+        {
+            if (center[i].color == potion2.color)
+            {
+                if (center[i].type == 0)
+                    m00(i);
+                if (center[i].type == 1)
+                    m11(i);
+                if (center[i].type == 2)
+                    m22(i);
+                if (center[i].type == 3)
+                    m33(i);
+            }
+        }
+        potion2.color = 0;
+    }
+}
+
+void majoonfaal(int i)
+{
+//    for (int i=0; i<numberofareas; i++)
+    {
+        if (potion1.color==center[i].color)
+        {
+            center[i].majoon=true;
+            center[i].type=potion1.type;
+
+        }
+        else if (potion2.color==center[i].color)
+        {
+            center[i].majoon=true;
+            center[i].type=potion2.type;
+        }
+        else
+        {
+            center[i].majoon=false;
+        }
+        if (center[i].majoon)
+        {
+            if (center[i].type==0)
+                m0(i);
+            if (center[i].type==1)
+                m1(i);
+            if (center[i].type==2)
+                m2(i);
+            if (center[i].type==3)
+                m3(i);
+        }
+    }
+}
+
 void bekesh (SDL_Renderer *renderer, struct markaz center[])
 {
     for (int i=0; i<numberofareas; i++)
@@ -158,7 +290,22 @@ void bekesh (SDL_Renderer *renderer, struct markaz center[])
         SDL_FreeSurface(adads);
         SDL_DestroyTexture(tex);
         TTF_CloseFont(font);
+        majoonfaal(i);
+        if (center[i].majoon)
+        {
+            SDL_Rect size = {center[i].x, center[i].y + 15, 20, 20};
+            SDL_Surface *m = SDL_LoadBMP("m3.bmp");
+            if (!m)
+                printf("Failed to load image at%s", SDL_GetError());
+            SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, m);
+            SDL_RenderCopy(renderer, img, NULL, &size);
+            SDL_FreeSurface(m);
+            SDL_DestroyTexture(img);
+        }
     }
+//    qheyrfaal();
+    potion1.time++;
+    potion2.time++;
 }
 
 void draw (SDL_Renderer *renderer, double x, double y)
@@ -248,9 +395,24 @@ void faal(int i)
     while (head!=NULL)
     {
 //        printf("hello : %lf %lf %lf %lf\n",head->x, majoon.x, head->y, majoon.y);
-        if (pow(head->x-majoon.x, 2) + pow(head->y-majoon.y, 2)<=64)
+        if (pow(head->x-majoon.x, 2) + pow(head->y-majoon.y, 2)<=64 && center[bazi[i].s].majoon==false)
         {
             nist=false;
+//            majoonfaal(i);
+            if (majoon.whichone==1)
+            {
+                potion1.type=majoon.type;
+                potion1.color=center[bazi[i].s].color;
+                potion1.time=0;
+                majoon.whichone=2;
+            }
+            else if (majoon.whichone==2)
+            {
+                potion2.type=majoon.type;
+                potion2.color=center[bazi[i].s].color;
+                potion2.time=0;
+                majoon.whichone=1;
+            }
             majoon.x=0;
             majoon.y=0;
             return;
@@ -458,42 +620,6 @@ void makemajoon(SDL_Renderer *renderer)
     }
 }
 
-void m0()
-{
-    for (int i=0; i<numberofareas; i++)
-    {
-        if (majoon.color==center[i].color)
-            center[i].speed*=2;
-    }
-}
-
-void m1()
-{
-    for (int i=0; i<numberofareas; i++)
-    {
-        if (majoon.color!=center[i].color)
-            center[i].speed/=2;
-    }
-}
-
-void m2()
-{
-    for (int i=0; i<numberofareas; i++)
-    {
-        if (majoon.color==center[i].color)
-            center[i].max=10000;
-    }
-}
-
-void m3()
-{
-    for (int i=0; i<numberofareas; i++)
-    {
-        if (majoon.color==center[i].color)
-            center[i].rate*=2;
-    }
-}
-
 int main()
 {
     srand(time(NULL));
@@ -528,6 +654,7 @@ int main()
             center[i].max=20;
         else
             center[i].max=80;
+        center[i].majoon=false;
     }
     //background
     SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
@@ -542,6 +669,7 @@ int main()
         bazi[i].nsarbaz=0;
     }
     SDL_Event event;
+    majoon.whichone=1;
     //running
     while (running)
     {
@@ -603,7 +731,9 @@ int main()
             randomareas(renderer);
         }
         if (c%400>=0 && c%400<=300 && c>=400)
+        {
             makemajoon(renderer);
+        }
             //filledTrigonRGBA(renderer, majoon.x-12, majoon.y+ sqrt(3)*4, majoon.x+12, majoon.y+sqrt(3)*4, majoon.x, majoon.y-sqrt(3)*8, 0,0,0,255);
 //        for (int i=0; i<numberofareas; i++)
 //            if (pow(event.motion.x-center[i].x,2)+ pow(event.motion.y-center[i].y, 2)<=400)
