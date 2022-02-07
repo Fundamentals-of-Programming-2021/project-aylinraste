@@ -144,18 +144,20 @@ void m0(int i, int k)
     if (k==2)
         if (potion2.color==center[i].color)
             center[i].speed=8;
-    printf ("speed:%d %d\n", center[i].speed, i);
+    if (center[i].color!=potion1.color && center[i].color!=potion2.color)
+        center[i].speed=4;
+//    printf ("speed:%d %d\n", center[i].speed, i);
 }
 
 void m00(int i, int k)
 {
-    if (k==1)
-        if (potion1.color==center[i].color)
-             center[i].speed=4;
-    if (k==2)
-        if (potion2.color==center[i].color)
+//    if (k==1)
+//        if (potion1.color==center[i].color)
+//             center[i].speed=4;
+//    if (k==2)
+//        if (potion2.color==center[i].color)
             center[i].speed=4;
-    printf ("speed*:%d %d\n", center[i].speed, i);
+//    printf ("speed*:%d %d\n", center[i].speed, i);
 }
 
 void m1(int i, int k)
@@ -166,18 +168,20 @@ void m1(int i, int k)
     if (k==2)
         if (potion2.color!=center[i].color)
             center[i].speed=2;
-    printf ("speed2:%d %d\n", center[i].speed, i);
+    if (center[i].color==potion1.color || center[i].color==potion2.color)
+        center[i].speed=4;
+//    printf ("speed2:%d %d\n", center[i].speed, i);
 }
 
 void m11(int i, int k)
 {
-     if (k==1)
-        if (potion1.color!=center[i].color)
+//     if (k==1)
+//        if (potion1.color!=center[i].color)
+//            center[i].speed=4;
+//    if (k==2)
+//        if (potion2.color!=center[i].color)
             center[i].speed=4;
-    if (k==2)
-        if (potion2.color!=center[i].color)
-            center[i].speed=4;
-    printf ("speed2*:%d %d\n", center[i].speed, i);
+//    printf ("speed2*:%d %d\n", center[i].speed, i);
 }
 
 void m2(int i, int k)
@@ -188,7 +192,7 @@ void m2(int i, int k)
     if (k==2)
         if (potion2.color==center[i].color)
             center[i].max=10000;
-    printf ("max:%d %d\n", center[i].max, i);
+//    printf ("max:%d %d\n", center[i].max, i);
 }
 
 void m22(int i, int k)
@@ -199,7 +203,7 @@ void m22(int i, int k)
     if (k==2)
         if (potion2.color==center[i].color)
             center[i].max=80;
-    printf ("max*:%d %d\n", center[i].max, i);
+//    printf ("max*:%d %d\n", center[i].max, i);
 }
 
 void m3(int i, int k)
@@ -210,7 +214,7 @@ void m3(int i, int k)
     if (k==2)
         if (potion2.color==center[i].color)
             center[i].rate=5;
-    printf ("rate:%d %d\n", center[i].rate, i);
+//    printf ("rate:%d %d\n", center[i].rate, i);
 }
 
 void m33(int i, int k)
@@ -221,7 +225,7 @@ void m33(int i, int k)
     if (k==2)
         if (potion2.color==center[i].color)
             center[i].rate=15;
-    printf ("rate*:%d %d\n", center[i].rate, i);
+//    printf ("rate*:%d %d\n", center[i].rate, i);
 }
 
 void qheyrfaal()
@@ -239,7 +243,7 @@ void qheyrfaal()
             if (potion1.type==3)
                 m33(i, 1);
         }
-        printf("potion*: %d %d\n", potion1.time, potion2.time);
+//        printf("potion*: %d %d\n", potion1.time, potion2.time);
         potion1.color=0;
         potion1.type=20;
         potion1.time=0;
@@ -283,6 +287,7 @@ void active_potion()
         if (potion1.type==0 && potion1.color!=0)
         {
             m0(i, 1);
+//            printf("heyyyyy\n");
         }
         if (potion1.type==1 && potion1.color!=0)
         {
@@ -296,7 +301,7 @@ void active_potion()
         {
             m3(i, 1);
         }
-        if (potion1.type==0 && potion1.color!=0)
+        if (potion2.type==0 && potion2.color!=0)
         {
             m0(i, 2);
         }
@@ -316,55 +321,6 @@ void active_potion()
     potion1.time++;
     potion2.time++;
 //    printf("potion:%d %d\n", potion1.time, potion2.time);
-}
-
-void majoonfaal(int i)
-{
-//    for (int i=0; i<numberofareas; i++)
-    {
-        if (potion1.color==center[i].color)
-        {
-            center[i].majoon=true;
-            center[i].type=potion1.type;
-//            if (center[i].type==0)
-//                m0(i, 1);
-//            if (center[i].type==1)
-//                m1(i, 1);
-//            if (center[i].type==2)
-//                m2(i, 1);
-//            if (center[i].type==3)
-//                m3(i, 1);
-
-        }
-        else if (potion2.color==center[i].color)
-        {
-            center[i].majoon=true;
-            center[i].type=potion2.type;
-//            if (center[i].type==0)
-//                m0(i, 2);
-//            if (center[i].type==1)
-//                m1(i, 2);
-//            if (center[i].type==2)
-//                m2(i, 2);
-//            if (center[i].type==3)
-//                m3(i, 2);
-        }
-        else
-        {
-            center[i].majoon=false;
-        }
-//        if (center[i].majoon)
-//        {
-//            if (center[i].type==0)
-//                m0(i);
-//            if (center[i].type==1)
-//                m1(i);
-//            if (center[i].type==2)
-//                m2(i);
-//            if (center[i].type==3)
-//                m3(i);
-//        }
-    }
 }
 
 void bekesh (SDL_Renderer *renderer, struct markaz center[])
@@ -484,7 +440,7 @@ void saveclick(double x, double y , int *start, int *end)
                 if ( bazi[j].nsarbaz!=0  && (bazi[j].start.x== center[i].x && bazi[j].start.y== center[i].y))
                     k=0;
             }
-            if (*start==-1 && center[i].color !=color[8] && k)
+            if (*start==-1 && center[i].color ==color[0] && k)
             {
 //                printf("hi%d\n", bazi[j].nsarbaz);
                 *start = i;
@@ -697,7 +653,9 @@ void is_same(int i, int j, struct sarbaz *headi, struct sarbaz *headj)
     {
         if (pow(bazi[i].head->x-headj->next->x, 2)+pow(bazi[i].head->y-headj->next->y, 2)<100 && bazi[i].start.color != bazi[j].start.color)
         {
+            free(headj->next);
             headj->next=headj->next->next;
+            free(bazi[i].head);
             bazi[i].head=bazi[i].head->next;
             return;
         }
@@ -794,7 +752,84 @@ void barkhord(SDL_Renderer *renderer, int c)
     }
 }
 
-int main()
+int halat0(int aval)
+{
+    srand(time(NULL));
+    int akhar=rand()%numberofareas;
+    while (center[akhar].color==center[aval].color || akhar==aval)
+        akhar=rand()%numberofareas;
+    return akhar;
+}
+
+int halat1(int aval)
+{
+    srand(time(NULL));
+    int akhar=rand()%numberofareas, k=0;
+    while (center[akhar].soldiers>center[aval].soldiers || center[akhar].color!=center[aval].color || akhar==aval)
+    {
+        akhar=rand()%numberofareas;
+        k++;
+        if (k>numberofareas)
+        {
+            akhar= halat0(aval);
+            break;
+        }
+    }
+    return akhar;
+}
+
+int halat2(int aval)
+{
+    srand(time(NULL));
+    int akhar=rand()%numberofareas, k=0;
+    while (center[akhar].color!=color[0])
+    {
+        akhar=rand()%numberofareas;
+        k++;
+        if (k>numberofareas)
+        {
+            akhar= halat1(aval);
+            break;
+        }
+    }
+    return akhar;
+}
+
+int halat3(int aval)
+{
+    int min=1000000, akhar=-1;
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (center[i].soldiers<min && i!=aval && center[i].color!=center[aval].color)
+        {
+            min=center[i].soldiers;
+            akhar=i;
+        }
+    }
+    return akhar;
+}
+
+int halat4(int aval)
+{
+    srand(time(NULL));
+    int akhar=rand()%numberofareas;
+    for (int i=0; i<numberofareas; i++)
+    {
+        if (center[i].color==color[8])
+        {
+            akhar=i;
+            break;
+        }
+//        if (majoon.x!=0 && majoon.y!=0 && (int)(center[aval].x+center[i].x) % (int)majoon.x==0 && (int)(center[aval].y+center[i].y) % (int)majoon.y==0)
+//        {
+//            akhar=i;
+//            break;
+//        }
+    }
+    return akhar;
+}
+
+int map()
 {
     srand(time(NULL));
     init();
@@ -857,15 +892,58 @@ int main()
         if (event.type == SDL_MOUSEBUTTONDOWN)
             saveclick(event.motion.x, event.motion.y, &start, &end);
         if (start!=-1 && end!=-1)
-        {
             startfight(&start, &end);
-        }
         barkhord(renderer, c);
         if (c%400==0)
             randomareas(renderer);
         if (c%400>=0 && c%400<=300 && c>=400)
             makemajoon(renderer);
         active_potion();
+        if (c%200==100)
+        {
+            int ehtemal=rand()%100, halat=rand()%5;
+            printf("%d %d\n", halat, ehtemal);
+            if (ehtemal<90)
+            {
+//                int aval=rand()%numberofareas;
+//                while (center[aval].color==color[8] || center[aval].color==color[0])
+//                    aval=rand()%numberofareas;
+//                start=aval;
+//                end = halat2(start);
+                if(ehtemal<80 && halat==1)
+                {
+                    int aval=rand()%numberofareas;
+                    while (center[aval].color==color[8] || center[aval].color==color[0])
+                        aval=rand()%numberofareas;
+                    start=aval;
+                    end = halat1(start);
+                }
+                if(ehtemal<60 && halat==2)
+                {
+                    int aval=rand()%numberofareas;
+                    while (center[aval].color==color[8] || center[aval].color==color[0])
+                        aval=rand()%numberofareas;
+                    start=aval;
+                    end = halat2(start);
+                }
+                if(ehtemal<70 && halat==3)
+                {
+                    int aval=rand()%numberofareas;
+                    while (center[aval].color==color[8] || center[aval].color==color[0])
+                        aval=rand()%numberofareas;
+                    start=aval;
+                    end = halat3(start);
+                }
+                if(ehtemal<70 && halat==4)
+                {
+                    int aval=rand()%numberofareas;
+                    while (center[aval].color==color[8] || center[aval].color==color[0])
+                        aval=rand()%numberofareas;
+                    start=aval;
+                    end = halat4(start);
+                }
+            }
+        }
         SDL_RenderPresent(renderer);
         if (event.type == SDL_QUIT)
             running=false;
@@ -876,6 +954,10 @@ int main()
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
-
     return 0;
+}
+
+int main()
+{
+    map();
 }
