@@ -1011,7 +1011,7 @@ int map(SDL_Window *window)
     if (maps==0)
     {
         double x = a * 1.0, y = b * 1.0;
-        scanf("%d %d", &numberofareas, &numberofplayers);
+//        scanf("%d %d", &numberofareas, &numberofplayers);
         center = malloc(sizeof(struct markaz) * numberofareas);
         makecolors(color);
         printf("hi\n");
@@ -1327,6 +1327,9 @@ void startmenu (SDL_Window *window)
     int xtest=550, ytest=150, htest=100, wtest=200;
     int xmap1=550, ymap1=270, hmap1=100, wmap1=200;
     int xmap2=550, ymap2=390, hmap2=100, wmap2=200;
+    int xbox1=35, ybox1=400, hbox1=70, wbox1=200;
+    int xbox2=255, ybox2=400, hbox2=70, wbox2=200;
+    int a=0;
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
@@ -1354,13 +1357,19 @@ void startmenu (SDL_Window *window)
     SDL_Surface *map2 = SDL_LoadBMP("maptwo.bmp");
     SDL_Texture *aks4 = SDL_CreateTextureFromSurface(renderer, map2);
 
-    int c=0;
+    int c=0, i1=0, i2=0;
+    char numa[3]="", nump[3]="";
+
+    bool type=false, ok1=false, ok2=false, quit1=false, quit2=false;
 
     SDL_Event event;
     {
         while (running && hstart)
         {
             c++;
+            SDL_Rect size1 = {xrandom, yrandom - a, wrandom, hrandom};
+            SDL_Surface *random = SDL_LoadBMP("random.bmp");
+            SDL_Texture *aks1 = SDL_CreateTextureFromSurface(renderer, random);
             SDL_RenderClear(renderer);
             SDL_RenderCopy(renderer, img, NULL, &andaze);
             SDL_RenderCopy(renderer, aks, NULL, &size);
@@ -1368,49 +1377,137 @@ void startmenu (SDL_Window *window)
             SDL_RenderCopy(renderer, aks2, NULL, &size2);
             SDL_RenderCopy(renderer, aks3, NULL, &size3);
             SDL_RenderCopy(renderer, aks4, NULL, &size4);
+            if (type)
+            {
+                SDL_Rect size10 = {xbox1, ybox1, wbox1, hbox1};
+                SDL_Surface *box1 = SDL_LoadBMP("a.bmp");
+                SDL_Texture *aks10 = SDL_CreateTextureFromSurface(renderer, box1);
+
+                SDL_Rect size11 = {xbox2, ybox2, wbox2, hbox2};
+                SDL_Surface *box2 = SDL_LoadBMP("a.bmp");
+                SDL_Texture *aks11 = SDL_CreateTextureFromSurface(renderer, box2);
+
+                SDL_RenderCopy(renderer, aks10, NULL, &size10);
+                SDL_RenderCopy(renderer, aks11, NULL, &size11);
+
+                SDL_FreeSurface(box1);
+                SDL_DestroyTexture(aks10);
+                SDL_FreeSurface(box2);
+                SDL_DestroyTexture(aks11);
+            }
             SDL_PollEvent(&event);
 //            if (c%30<=15)
 //                text(renderer, 280, 20, "CHOSE YOUR PLAN!", 56, 90, 100, 255, 255);
 //            else
 //                text(renderer, 280, 20, "CHOSE YOUR PLAN!", 56, 230, 170, 255, 255);
-            text(renderer, 280, 50, "CHOSE YOUR PLAN!", 56, 0, 0, 0, 255);
-            SDL_RenderPresent(renderer);
+            text(renderer, 280, 50, "CHOSE YOUR MAP!", 56, 0, 0, 0, 255);
             if (event.type == SDL_QUIT)
-                running=false;
-            if(event.type== SDL_MOUSEBUTTONDOWN)
-            {
-                double x=event.motion.x;
-                double y=event.motion.y;
-                if (x>=xbackicon && x<=xbackicon+wbackicon && y>=ybackicon && y<= ybackicon+hbackicon)
-                {
-                    hmenu=true;
-                    hstart=false;
+                running = false;
+            if (event.type == SDL_MOUSEBUTTONDOWN) {
+                double x = event.motion.x;
+                double y = event.motion.y;
+                if (x >= xbackicon && x <= xbackicon + wbackicon && y >= ybackicon && y <= ybackicon + hbackicon) {
+                    hmenu = true;
+                    hstart = false;
                 }
-                if (x>=xrandom && x<=xrandom+wrandom && y>=yrandom && y<= yrandom+hrandom)//random
+                if (x >= xrandom && x <= xrandom + wrandom && y >= yrandom && y <= yrandom + hrandom)//random
                 {
-                    maps=0;
-                    hmap=true;
-                    hstart=false;
+                    if (!type)
+                    {
+                        a = 100;
+                        maps = 0;
+                        type = true;
+                    }
+                    else if (numberofareas !=0 && numberofplayers!=0)
+                    {
+                        hmap=true;
+                        hstart=false;
+                    }
                 }
-                if (x>=xmap1 && x<=xmap1+wmap1 && y>=ymap1 && y<= ymap1+hmap1)//1
+                if (x >= xmap1 && x <= xmap1 + wmap1 && y >= ymap1 && y <= ymap1 + hmap1)//1
                 {
-                    maps=1;
-                    hmap=true;
-                    hstart=false;
+                    maps = 1;
+                    hmap = true;
+                    hstart = false;
                 }
-                if (x>=xmap2 && x<=xmap2+wmap2 && y>=ymap2 && y<= ymap2+hmap2)//2
+                if (x >= xmap2 && x <= xmap2 + wmap2 && y >= ymap2 && y <= ymap2 + hmap2)//2
                 {
-                    maps=2;
-                    hmap=true;
-                    hstart=false;
+                    maps = 2;
+                    hmap = true;
+                    hstart = false;
                 }
-                if (x>=xtest && x<=xtest+wtest && y>=ytest && y<=ytest+htest)//3
+                if (x >= xtest && x <= xtest + wtest && y >= ytest && y <= ytest + htest)//3
                 {
-                    maps=3;
-                    hmap=true;
-                    hstart=false;
+                    maps = 3;
+                    hmap = true;
+                    hstart = false;
+                }
+                if (x >= xbox1 && x <= xbox1 + wbox1 && y >= ybox1 && y <= ybox1 + hbox1 && type) {
+                    ok1 = true;
+//                    printf("k\n");
+                }
+                if (x >= xbox2 && x <= xbox2 + wbox2 && y >= ybox2 && y <= ybox2 + hbox2 && type) {
+                    ok2 = true;
+//                    printf("m\n");
                 }
             }
+            if (ok1 && !quit1) {
+                char ch = 'm';
+                if (event.type == SDL_KEYUP) {
+                    if (event.key.keysym.sym == SDLK_BACKSPACE && i1 > 0)
+                    {
+                        numa[i1 - 1] = '\0';
+                        i1--;
+                    }
+                    else if (event.key.keysym.sym == SDLK_RETURN)
+                        quit1 = true;
+                    else
+                        ch = event.key.keysym.sym;
+
+                    if ((ch >= '0' && ch <= '9'))
+                    {
+                        numa[i1++] = ch;
+                    }
+                }
+
+                printf("numberofareas%d\n", numberofareas);
+            }
+            if (strlen(numa) != 0)
+            {
+                text(renderer, xbox1 + 75, ybox1 + 15, numa, 56, 0, 0, 0, 255);
+            }
+            numberofareas = atoi(numa);
+            if (ok2 && !quit2)
+            {
+                char ch = 'm';
+                if (event.type == SDL_KEYUP)
+                {
+                    if (event.key.keysym.sym == SDLK_BACKSPACE && i2 > 0)
+                    {
+                        nump[i2 - 1] = '\0';
+                        i2--;
+                    }
+                    else if (event.key.keysym.sym == SDLK_RETURN)
+                        quit2 = true;
+                    else
+                        ch = event.key.keysym.sym;
+
+                    if ((ch >= '0' && ch <= '9'))
+                    {
+                        nump[i2++] = ch;
+                    }
+                }
+                printf("numberofplayers%d\n", numberofplayers);
+            }
+            if (strlen(nump)!= 0)
+            {
+                text(renderer, xbox2 + 85, ybox2 + 15, nump, 56, 0, 0, 0, 255);
+            }
+            numberofplayers = atoi(nump);
+
+            SDL_RenderPresent(renderer);
+            SDL_FreeSurface(random);
+            SDL_DestroyTexture(aks1);
         }
     }
     SDL_DestroyRenderer(renderer);
