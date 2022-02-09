@@ -22,6 +22,7 @@ struct markaz
     bool majoon;
     int type;
     bool on;
+    int target;
 };
 
 struct sarbaz
@@ -66,7 +67,6 @@ struct users
     int score;
 };
 
-const int FPS = 60;
 const int SCREEN_WIDTH = 900;
 const int SCREEN_HEIGHT = 600;
 const int s=50;
@@ -74,14 +74,16 @@ int chosenbackground=1;
 int check[50]={0};
 uint32_t colors[100];
 uint32_t color[9]={0xffffc75f ,0xffaaaa00  , 0xff5fc7ff , 0xffff00ff,0xffccb5fc , 0xffff6f91, 0xffff9671, 0xff916fff, 0xff9b9d9e};
-int numberofareas, numberofplayers, number=0;
+int numberofareas, numberofplayers, number;
 struct markaz *center;
 struct fight *bazi;
 struct sarbaz *soldier;
 struct potion majoon;
 struct active potion1, potion2;
+bool mutee=false;
 bool nist=true;
 int mokhtasat[SCREEN_WIDTH][SCREEN_HEIGHT]={0};
+int maps;
 
 bool running=true;
 Mix_Music *music1 = NULL;
@@ -89,9 +91,13 @@ Mix_Music *music2 = NULL;
 bool win=false, lose=false;
 char name[40]="";
 
+bool hmenu=true, hmap=false, hsettings=false, hranking=false, hstart=false, hpause=false;
+
 #ifdef main
 #undef main
 #endif
+int pausemenu(SDL_Window *window);
+void menu(SDL_Window *window);
 void init()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER |TTF_Init() | SDL_INIT_AUDIO) < 0) {
@@ -167,6 +173,7 @@ void find_center( double x, double y, uint32_t target)
     center[number].x=x+0.5*s* sqrt(3);
     center[number].y=y+0.5*s;
     center[number].color=target;
+    printf("colors:%d %d\n", target, color[0]);
     mokhtasat[(int)x][(int)y]++;
 }
 
@@ -360,6 +367,7 @@ void active_potion()
 void bekesh (SDL_Renderer *renderer, struct markaz center[])
 {
     int man=0, to=0;
+//    printf("numberofareas:%d\n", numberofareas);
     for (int i=0; i<numberofareas; i++)
     {
         double x=center[i].x-0.5*s*sqrt(3), y=center[i].y-0.5*s;
@@ -412,6 +420,7 @@ void bekesh (SDL_Renderer *renderer, struct markaz center[])
             SDL_DestroyTexture(img);
         }
     }
+    printf("man:%d to:%d\n", man, to);
     if (man==0)
         lose=true;
     if (to==0)
@@ -433,6 +442,7 @@ void draw (SDL_Renderer *renderer, double x, double y)
     check[r]=1;
     uint32_t target;
     target=colors[r];
+    center[number].target=r;
     find_center(x,y, target);
     number++;
     printf("%lf %lf %d\n", x, y, number);
@@ -931,11 +941,11 @@ int readfile (struct users carbar[])
         if (harf=='/')
         {
             fscanf(scores, "%d %d %d %d ", &carbar[j].win, &carbar[j].lose, &carbar[j].draw, &carbar[j].score);
-            printf ("%d %d %d %d\n", carbar[j].win, carbar[j].lose, carbar[j].draw, carbar[j].score);
+//            printf ("%d %d %d %d\n", carbar[j].win, carbar[j].lose, carbar[j].draw, carbar[j].score);
             harf= fgetc(scores);
         }
     }
-    printf("%d\n",j);
+//    printf("%d\n",j);
     return j;
 }
 
@@ -978,7 +988,7 @@ void sort(FILE *scores)
     for (int i=0; i<=j; i++)
     {
         fprintf(new, "%s/%d %d %d %d\n", carbar[i].name, carbar[i].win, carbar[i].lose, carbar[i].draw, carbar[i].score);
-        printf("%s/%d %d %d %d\n", carbar[i].name, carbar[i].win, carbar[i].lose, carbar[i].draw, carbar[i].score);
+//        printf("%s/%d %d %d %d\n", carbar[i].name, carbar[i].win, carbar[i].lose, carbar[i].draw, carbar[i].score);
     }
     fclose(new);
     remove("scores.md");
@@ -988,19 +998,75 @@ void sort(FILE *scores)
 int map(SDL_Window *window)
 {
     srand(time(NULL));
+    number=0;
     init();
+    printf("its ok\n");
+    for (int i=0; i<50; i++)
+        check[i]=0;
     //window
 //    SDL_Window *window = SDL_CreateWindow("Maps",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH,SCREEN_HEIGHT,SDL_WINDOW_OPENGL);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
     //map
-    int a = rand() % (SCREEN_WIDTH-100 - s * 2), b = rand() % (SCREEN_HEIGHT-200 - 2 * s) + s * 0.5, c=0, start=-1, end=-1;
-    double x = a * 1.0, y = b * 1.0;
-    scanf("%d %d", &numberofareas, &numberofplayers);
-    center = malloc(sizeof(struct markaz) * numberofareas);
-    makecolors(color);
-    draw(renderer, x, y);
-    while (number<numberofareas)
-        generate_random(renderer, x, y);
+    int a = rand() % (SCREEN_WIDTH-50 - s * 2), b = rand() % (SCREEN_HEIGHT-50 - 2 * s) + s * 0.5, c=0, start=-1, end=-1;
+    if (maps==0)
+    {
+        double x = a * 1.0, y = b * 1.0;
+        scanf("%d %d", &numberofareas, &numberofplayers);
+        center = malloc(sizeof(struct markaz) * numberofareas);
+        makecolors(color);
+        printf("hi\n");
+        draw(renderer, x, y);
+        while (number<numberofareas)
+            generate_random(renderer, x, y);
+    }
+    if (maps==3)
+    {
+        FILE *test= fopen("test.md", "r");
+        fscanf(test, "%*c%d %d", &numberofareas, &numberofplayers);
+        printf("%d %d\n", numberofareas, numberofplayers);
+        center = malloc(sizeof(struct markaz) * numberofareas);
+        for (int i=0; i<numberofareas; i++)
+        {
+            fscanf(test, "%lf %lf %d", &center[i].x, &center[i].y, &center[i].target);
+            center[i].color=color[center[i].target];
+            printf("%lf %lf %d\n", center[i].x, center[i].y, center[i].target);
+        }
+    }
+    if (maps==1)
+    {
+        FILE *test= fopen("plans.md", "r");
+        fscanf(test, "%*c%d %d", &numberofareas, &numberofplayers);
+        printf("%d %d\n", numberofareas, numberofplayers);
+        center = malloc(sizeof(struct markaz) * numberofareas);
+        for (int i=0; i<numberofareas; i++)
+        {
+            fscanf(test, "%lf %lf %d", &center[i].x, &center[i].y, &center[i].target);
+            if (center[i].target>7)
+                center[i].color=color[8];
+            else
+                center[i].color=color[center[i].target];
+
+            printf("%lf %lf %d\n", center[i].x, center[i].y, center[i].target);
+        }
+    }
+    if (maps==2)
+    {
+        FILE *test= fopen("plans.md", "r");
+        char harf= fgetc(test);
+        while ((harf=fgetc(test))!='/');
+        fscanf(test, "%d %d", &numberofareas, &numberofplayers);
+        printf("%d %d\n", numberofareas, numberofplayers);
+        center = malloc(sizeof(struct markaz) * numberofareas);
+        for (int i=0; i<numberofareas; i++)
+        {
+            fscanf(test, "%lf %lf %d", &center[i].x, &center[i].y, &center[i].target);
+            if (center[i].target>=7)
+                center[i].color=color[8];
+            else
+                center[i].color=color[center[i].target];
+            printf("%lf %lf %d\n", center[i].x, center[i].y, center[i].target);
+        }
+    }
     for (int i=0; i<numberofareas; i++)
     {
         center[i].soldiers = 20;
@@ -1015,9 +1081,21 @@ int map(SDL_Window *window)
         center[i].on=false;
     }
     //background
+    double xpause=5, ypause=545, w=50;
     SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
-    SDL_Surface *background = SDL_LoadBMP("background1.bmp");
+    SDL_Surface *background;
+    if (chosenbackground==1)
+        background= SDL_LoadBMP("background1.bmp");
+    if (chosenbackground==2)
+        background= SDL_LoadBMP("background2.bmp");
+    if (chosenbackground==3)
+        background= SDL_LoadBMP("background3.bmp");
     SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, background);
+
+    SDL_Rect size = {xpause, ypause , w , w};
+    SDL_Surface *pause = SDL_LoadBMP("pause.bmp");
+    SDL_Texture *aks = SDL_CreateTextureFromSurface(renderer, pause);
+
     bazi = malloc(sizeof (struct fight)*100);
     for (int i=0; i<100; i++)
     {
@@ -1029,17 +1107,16 @@ int map(SDL_Window *window)
     potion1.color=0;
     potion2.color=0;
     //running
-    while (running)
+    while (running && hmap)
     {
         win=false;
         lose=false;
         c++;
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, img, NULL, &andaze);
+        SDL_RenderCopy(renderer, aks, NULL, &size);
         bekesh(renderer, center);
         SDL_PollEvent(&event);
-        if (event.type == SDL_MOUSEBUTTONDOWN)
-            saveclick(event.motion.x, event.motion.y, &start, &end);
         if (start!=-1 && end!=-1)
             startfight(&start, &end);
         barkhord(renderer, c);
@@ -1051,88 +1128,113 @@ int map(SDL_Window *window)
         if (c%200==100)
             enemy(&start, &end);
         SDL_RenderPresent(renderer);
-        if (event.type == SDL_QUIT || win || lose)
         {
-            running=false;
-            FILE *scoresf=fopen("scores1.md", "w"), *scoresi= fopen("scores.md", "r");
+            if (event.type == SDL_QUIT || win || lose)
+            {
+                printf("win:%d lose:%d\n", win, lose);
+                running=false;
+                FILE *scoresf=fopen("scores1.md", "w"), *scoresi= fopen("scores.md", "r");
 
-            char harf= fgetc(scoresi);
+                char harf= fgetc(scoresi);
 //            fread(harf, 1, 1, scoresi);
 //            fscanf(scoresi, "%c", &harf);
-            int nwin, nlose, ndraw, score;
-            bool nevesht=false;
-            while (harf != EOF)
-            {
-                int i=0;
-                char user[40]="";
-                while (harf!=EOF && harf!='/')
+                int nwin, nlose, ndraw, score;
+                bool nevesht=false;
+                while (harf != EOF)
                 {
-                    user[i++]=harf;
-                    harf= fgetc(scoresi);
+                    int i=0;
+                    char user[40]="";
+                    while (harf!=EOF && harf!='/')
+                    {
+                        user[i++]=harf;
+                        harf= fgetc(scoresi);
 //                    fscanf(scoresi, "%c", &harf);
 //                    printf("name:%s\n", user);
-                }
-                if (harf=='/')
-                {
-                    fscanf(scoresi, "%d %d %d %d ", &nwin, &nlose, &ndraw, &score);
-//                    printf("%d %d %d %d\n", nwin, nlose, ndraw, score);
-                    if (!strcmp(user, name))
-                    {
-                        if (win)
-                        {
-                            nwin++;
-                        }
-                        if (lose)
-                        {
-                            nlose++;
-                        }
-                        if (event.type == SDL_QUIT)
-                        {
-                            ndraw++;
-                        }
-                        score=nwin*2-nlose;
-                        nevesht=true;
                     }
-                    printf("%s/%d %d %d %d\n", user, nwin, nlose, ndraw, score);
-                    fprintf(scoresf, "%s/%d %d %d %d\n", user, nwin, nlose, ndraw, score);
-                    harf= fgetc(scoresi);
-                    printf("%c\n", harf);
+                    if (harf=='/')
+                    {
+                        fscanf(scoresi, "%d %d %d %d ", &nwin, &nlose, &ndraw, &score);
+//                    printf("%d %d %d %d\n", nwin, nlose, ndraw, score);
+                        if (!strcmp(user, name))
+                        {
+                            if (win)
+                            {
+                                nwin++;
+                            }
+                            if (lose)
+                            {
+                                nlose++;
+                            }
+                            if (event.type == SDL_QUIT)
+                            {
+                                ndraw++;
+                            }
+                            score=nwin*2-nlose;
+                            nevesht=true;
+                        }
+//                    printf("%s/%d %d %d %d\n", user, nwin, nlose, ndraw, score);
+                        fprintf(scoresf, "%s/%d %d %d %d\n", user, nwin, nlose, ndraw, score);
+                        harf= fgetc(scoresi);
+//                    printf("%c\n", harf);
+                    }
                 }
-            }
-            if (!nevesht)
-            {
-                if (win)
+                if (!nevesht)
                 {
-                    fprintf(scoresf, "%s/%d %d %d %d\n", name, 1, 0, 0, 2);
-                }
-                else if (lose)
-                {
-                    fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 1, 0, -1);
-                }
+                    if (win)
+                    {
+                        fprintf(scoresf, "%s/%d %d %d %d\n", name, 1, 0, 0, 2);
+                    }
+                    else if (lose)
+                    {
+                        fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 1, 0, -1);
+                    }
 //                if (event.type == SDL_QUIT)
-                else
-                {
-                    fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 0, 1, 0);
+                    else
+                    {
+                        fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 0, 1, 0);
+                    }
                 }
-            }
-            fclose(scoresi);
-            fclose(scoresf);
-            remove("scores.md");
-            rename("scores1.md", "scores.md");
-            FILE *scores= fopen("scores.md", "r");
-            sort(scores);
-            fclose(scores);
+                fclose(scoresi);
+                fclose(scoresf);
+                remove("scores.md");
+                rename("scores1.md", "scores.md");
+                FILE *scores= fopen("scores.md", "r");
+                sort(scores);
+                fclose(scores);
 
+            }
         }
         generate_soldier(c);
+        if (event.type == SDL_MOUSEBUTTONDOWN)
+        {
+            if (event.motion.x>=xpause && event.motion.x<=xpause+w && event.motion.y>=ypause && event.motion.y<=ypause+w)
+            {
+                SDL_DestroyRenderer(renderer);
+                int chi=pausemenu(window);
+                if (chi==1)
+                {
+                    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+                    img = SDL_CreateTextureFromSurface(renderer, background);
+                    aks = SDL_CreateTextureFromSurface(renderer, pause);
+                }
+                if (chi==0)
+                {
+                    printf("running:%d\n", running);
+                    hmap=false;
+                    hmenu=true;
+                }
+            }
+            else
+                saveclick(event.motion.x, event.motion.y, &start, &end);
+        }
     }
+    printf("man\n");
     SDL_DestroyTexture(img);
     SDL_FreeSurface(background);
-    SDL_DestroyRenderer(renderer);
+    free(center);
+//    SDL_DestroyRenderer(renderer);
     return 0;
 }
-
-void menu(SDL_Window *window);
 
 void rankingmenu(SDL_Window *window)
 {
@@ -1165,7 +1267,7 @@ void rankingmenu(SDL_Window *window)
     printf("hello\n");
 
     SDL_Event event;
-    while (running)
+    while (running && hranking)
     {
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, img, NULL, &andaze);
@@ -1204,38 +1306,74 @@ void rankingmenu(SDL_Window *window)
             double y=event.motion.y;
             if (x>=xbackicon && x<=xbackicon+wbackicon && y>=ybackicon && y<= ybackicon+hbackicon)
             {
-                SDL_DestroyRenderer(renderer);
-                SDL_FreeSurface(background);
-                SDL_DestroyTexture(img);
-                menu(window);
+                hranking=false;
+                hmenu=true;
             }
         }
     }
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(background);
+    SDL_DestroyTexture(img);
 }
 
 void startmenu (SDL_Window *window)
 {
     int xbackicon=0, ybackicon=495, hbackicon=70, wbackicon=70;
+//    int xrandom=170, yrandom=150, hrandom=150, wrandom=150;
+//    int xtest=570, ytest=150, htest=150, wtest=150;
+//    int xmap1=170, ymap1=370, hmap1=150, wmap1=150;
+//    int xmap2=570, ymap2=370, hmap2=150, wmap2=150;
+    int xrandom=120, yrandom=200, hrandom=250, wrandom=250;
+    int xtest=550, ytest=150, htest=100, wtest=200;
+    int xmap1=550, ymap1=270, hmap1=100, wmap1=200;
+    int xmap2=550, ymap2=390, hmap2=100, wmap2=200;
+
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+
     SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
     SDL_Surface *background = SDL_LoadBMP("backgroundstartmenu.bmp");
     SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, background);
 
     SDL_Rect size = {xbackicon, ybackicon , wbackicon , hbackicon};
     SDL_Surface *backicon = SDL_LoadBMP("backicon.bmp");
-    if (!background)
-        printf("Failed to load image at%s", SDL_GetError());
     SDL_Texture *aks = SDL_CreateTextureFromSurface(renderer, backicon);
 
+    SDL_Rect size1 = {xrandom, yrandom , wrandom , hrandom};
+    SDL_Surface *random = SDL_LoadBMP("random.bmp");
+    SDL_Texture *aks1 = SDL_CreateTextureFromSurface(renderer, random);
+
+    SDL_Rect size2 = {xtest, ytest , wtest , htest};
+    SDL_Surface *test = SDL_LoadBMP("tes.bmp");
+    SDL_Texture *aks2 = SDL_CreateTextureFromSurface(renderer, test);
+
+    SDL_Rect size3 = {xmap1, ymap1 , wmap1, hmap1};
+    SDL_Surface *map1 = SDL_LoadBMP("mapone.bmp");
+    SDL_Texture *aks3 = SDL_CreateTextureFromSurface(renderer, map1);
+
+    SDL_Rect size4 = {xmap2, ymap2 , wmap2 , hmap2};
+    SDL_Surface *map2 = SDL_LoadBMP("maptwo.bmp");
+    SDL_Texture *aks4 = SDL_CreateTextureFromSurface(renderer, map2);
+
+    int c=0;
 
     SDL_Event event;
     {
-        while (running)
+        while (running && hstart)
         {
+            c++;
             SDL_RenderClear(renderer);
             SDL_RenderCopy(renderer, img, NULL, &andaze);
             SDL_RenderCopy(renderer, aks, NULL, &size);
+            SDL_RenderCopy(renderer, aks1, NULL, &size1);
+            SDL_RenderCopy(renderer, aks2, NULL, &size2);
+            SDL_RenderCopy(renderer, aks3, NULL, &size3);
+            SDL_RenderCopy(renderer, aks4, NULL, &size4);
             SDL_PollEvent(&event);
+//            if (c%30<=15)
+//                text(renderer, 280, 20, "CHOSE YOUR PLAN!", 56, 90, 100, 255, 255);
+//            else
+//                text(renderer, 280, 20, "CHOSE YOUR PLAN!", 56, 230, 170, 255, 255);
+            text(renderer, 280, 50, "CHOSE YOUR PLAN!", 56, 0, 0, 0, 255);
             SDL_RenderPresent(renderer);
             if (event.type == SDL_QUIT)
                 running=false;
@@ -1245,14 +1383,39 @@ void startmenu (SDL_Window *window)
                 double y=event.motion.y;
                 if (x>=xbackicon && x<=xbackicon+wbackicon && y>=ybackicon && y<= ybackicon+hbackicon)
                 {
-                    SDL_DestroyRenderer(renderer);
-                    SDL_FreeSurface(background);
-                    SDL_DestroyTexture(img);
-                    menu(window);
+                    hmenu=true;
+                    hstart=false;
+                }
+                if (x>=xrandom && x<=xrandom+wrandom && y>=yrandom && y<= yrandom+hrandom)//random
+                {
+                    maps=0;
+                    hmap=true;
+                    hstart=false;
+                }
+                if (x>=xmap1 && x<=xmap1+wmap1 && y>=ymap1 && y<= ymap1+hmap1)//1
+                {
+                    maps=1;
+                    hmap=true;
+                    hstart=false;
+                }
+                if (x>=xmap2 && x<=xmap2+wmap2 && y>=ymap2 && y<= ymap2+hmap2)//2
+                {
+                    maps=2;
+                    hmap=true;
+                    hstart=false;
+                }
+                if (x>=xtest && x<=xtest+wtest && y>=ytest && y<=ytest+htest)//3
+                {
+                    maps=3;
+                    hmap=true;
+                    hstart=false;
                 }
             }
         }
     }
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(background);
+    SDL_DestroyTexture(img);
 }
 
 void settingsmenu(SDL_Window *window)
@@ -1261,9 +1424,14 @@ void settingsmenu(SDL_Window *window)
     double a=1, ax=0, ay=0;
     double b=1, bx=0, by=0;
     double c=1, cx=0, cy=0;
+    double d=1, dx=0, dy=0;
+    double e=1, ex=0, ey=0;
     int xback1=45, yback1=120, hback1=150, wback1=240;
     int xback2=330, yback2=120, hback2=150, wback2=240;
     int xback3=615, yback3=120, hback3=150, wback3=240;
+    int xsound1=205, ysound1=380, hsound1=80, wsound1=500;
+    int xsound2=205, ysound2=450, hsound2=80, wsound2=500;
+    int xmute=800, ymute=495, w=70;
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
     SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
@@ -1274,9 +1442,17 @@ void settingsmenu(SDL_Window *window)
     SDL_Surface *backicon = SDL_LoadBMP("backicon.bmp");
     SDL_Texture *aks = SDL_CreateTextureFromSurface(renderer, backicon);
 
+    SDL_Rect size6 = {xmute, ymute , w , w};
+    SDL_Surface *mute = SDL_LoadBMP("mute.bmp");
+    SDL_Texture *aks6 = SDL_CreateTextureFromSurface(renderer, mute);
+
+    SDL_Rect size7 = {xmute, ymute, w , w};
+    SDL_Surface *unmute = SDL_LoadBMP("unmute.bmp");
+    SDL_Texture *aks7 = SDL_CreateTextureFromSurface(renderer, unmute);
+
     SDL_Event event;
     {
-        while (running)
+        while (running && hsettings)
         {
             SDL_PollEvent(&event);
             SDL_RenderPresent(renderer);
@@ -1288,10 +1464,12 @@ void settingsmenu(SDL_Window *window)
                 double y=event.motion.y;
                 if (x>=xbackicon && x<=xbackicon+wbackicon && y>=ybackicon && y<= ybackicon+hbackicon)
                 {
-                    SDL_DestroyRenderer(renderer);
-                    SDL_FreeSurface(background);
-                    SDL_DestroyTexture(img);
-                    menu(window);
+//                    SDL_DestroyRenderer(renderer);
+//                    SDL_FreeSurface(background);
+//                    SDL_DestroyTexture(img);
+                    hsettings=false;
+                    hmenu=true;
+//                    menu(window);
                 }
                 else if (x>=xback1 && x<=xback1+wback1 && y>=yback1 && y<= yback1+hback1)
                 {
@@ -1314,6 +1492,31 @@ void settingsmenu(SDL_Window *window)
                     c=1.2;cx=24;cy=15;
                     chosenbackground=3;
                 }
+                else if (x>=xsound1 && x<=xsound1+wsound1 && y>=ysound1 && y<= ysound1+hsound1)
+                {
+                    e=1;ex=0;ey=0;
+                    d=1.2;dx=50;dy=8;
+                    Mix_PlayMusic( music1, -1 );
+                }
+                else if (x>=xsound2 && x<=xsound2+wsound2 && y>=ysound2 && y<= ysound2+hsound2)
+                {
+                    d=1;dx=0;dy=0;
+                    e=1.2;ex=50;ey=8;
+                    Mix_PlayMusic( music2, -1 );
+                }
+                else if (x>=xmute && x<=xmute+w && y>=ymute && y<=ymute+w)//sound
+                {
+                    if(!mutee)
+                    {
+                        mutee=true;
+                        Mix_PauseMusic();
+                    }
+                    else
+                    {
+                        mutee=false;
+                        Mix_ResumeMusic();
+                    }
+                }
             }
 //            printf("%d\n", a);
             SDL_Rect size1 = {xback1-ax, yback1-ay , wback1*a , hback1*a};
@@ -1328,21 +1531,43 @@ void settingsmenu(SDL_Window *window)
             SDL_Surface *back3 = SDL_LoadBMP("background3.bmp");
             SDL_Texture *aks3 = SDL_CreateTextureFromSurface(renderer, back3);
 
+            SDL_Rect size4 = {xsound1-dx, ysound1-dy , wsound1*d , hsound1*d};
+            SDL_Surface *sound1 = SDL_LoadBMP("sound1.bmp");
+            SDL_Texture *aks4 = SDL_CreateTextureFromSurface(renderer, sound1);
+
+            SDL_Rect size5 = {xsound2-ex, ysound2-ey , wsound2*e , hsound2*e};
+            SDL_Surface *sound2 = SDL_LoadBMP("sound2.bmp");
+            SDL_Texture *aks5 = SDL_CreateTextureFromSurface(renderer, sound2);
+
             SDL_RenderClear(renderer);
             SDL_RenderCopy(renderer, img, NULL, &andaze);
             text(renderer, 270, 50, "CHOOSE YOUR BACKGROUND", 42, 255,255,255,255);
+            text(renderer, 315, 320, "CHOOSE YOUR MUSIC", 42, 255,255,255,255);
             SDL_RenderCopy(renderer, aks, NULL, &size);
             SDL_RenderCopy(renderer, aks1, NULL, &size1);
             SDL_RenderCopy(renderer, aks2, NULL, &size2);
             SDL_RenderCopy(renderer, aks3, NULL, &size3);
+            SDL_RenderCopy(renderer, aks4, NULL, &size4);
+            SDL_RenderCopy(renderer, aks5, NULL, &size5);
+            if (!mutee)
+                SDL_RenderCopy(renderer, aks6, NULL, &size6);
+            else
+                SDL_RenderCopy(renderer, aks7, NULL, &size7);
             SDL_DestroyTexture(aks1);
             SDL_FreeSurface(back1);
             SDL_DestroyTexture(aks2);
             SDL_FreeSurface(back2);
             SDL_DestroyTexture(aks3);
             SDL_FreeSurface(back3);
+            SDL_DestroyTexture(aks4);
+            SDL_FreeSurface(sound1);
+            SDL_DestroyTexture(aks5);
+            SDL_FreeSurface(sound2);
         }
     }
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(background);
+    SDL_DestroyTexture(img);
 }
 
 void menu(SDL_Window *window)
@@ -1374,7 +1599,7 @@ void menu(SDL_Window *window)
     bool quit=false;
     int i;
     bool menuu=true;
-    while (running && menuu)
+    while (running && hmenu)
     {
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, img, NULL, &andaze);
@@ -1387,38 +1612,47 @@ void menu(SDL_Window *window)
         {
             int x=event.motion.x;
             int y=event.motion.y;
-            if (pow(x-440, 2)+pow(y-195, 2)<= 125 * 125 ) // start
+            if (pow(x-440, 2)+pow(y-195, 2)<= 125 * 125 && strlen(name)!=0 ) // start
             {
-                printf("1\n");
-                menuu=false;
-                SDL_DestroyRenderer(renderer);
-                SDL_FreeSurface(background);
-                SDL_DestroyTexture(img);
-                startmenu(window);
+//                printf("1\n");
+                hmenu=false;
+                hstart=true;
+//                SDL_DestroyRenderer(renderer);
+//                SDL_FreeSurface(background);
+//                SDL_DestroyTexture(img);
+//                int k=map(window);
+//                if (k==0)
+//                    return;
+//                startmenu(window);
             }
             else if (pow(x-445, 2)<= 210 * 210 && pow(y-525, 2)<= 35 * 35) // username
            {
-                printf("2\n");
+//                printf("2\n");
                 i=0;
                 type=true;
            }
             else if (pow(x-700, 2)<=90*90 && pow(y-410, 2)<=60*60)//setting
             {
-                printf("3\n");
-                menuu=false;
-                SDL_DestroyRenderer(renderer);
-                SDL_FreeSurface(background);
-                SDL_DestroyTexture(img);
-                settingsmenu(window);
+//                printf("3\n");
+//                menuu=false;
+                hmenu=false;
+                hsettings=true;
+//                SDL_DestroyRenderer(renderer);
+//                SDL_FreeSurface(background);
+//                SDL_DestroyTexture(img);
+//                return;
+//                settingsmenu(window);
             }
             else if (pow(x-180, 2)<=90*90 && pow(y-410, 2)<=60*60)//ranking
             {
-                printf("4\n");
-                menuu=false;
-                SDL_DestroyRenderer(renderer);
-                SDL_FreeSurface(background);
-                SDL_DestroyTexture(img);
-                rankingmenu(window);
+//                printf("4\n");
+//                menuu=false;
+//                SDL_DestroyRenderer(renderer);
+//                SDL_FreeSurface(background);
+//                SDL_DestroyTexture(img);
+                hmenu=false;
+                hranking=true;
+//                rankingmenu(window);
             }
         }
         if(type && !quit)
@@ -1445,33 +1679,35 @@ void menu(SDL_Window *window)
                 {
                     if (capslock)
                     {
-                        name[i]=ch+'A'-'a';
-                        i++;
-                        printf("i:%d\n", i);
+                        name[i++]=ch+'A'-'a';
+//                        i++;
+//                        printf("i:%d\n", i);
                     }
                     else
                     {
-                        name[i]=ch;
-                        i++;
-                        printf("i:%d\n", i);
+                        name[i++]=ch;
+//                        i++;
+//                        printf("i:%d\n", i);
                     }
                 }
             }
         }
         if(strlen(name)!=0)
         {
-            printf("%s %d\n", name, capslock);
             text(renderer, 330, 510, name, 56, 0, 0,0, 255);
         }
         SDL_RenderPresent(renderer);
         if (event.type == SDL_QUIT)
             running=false;
     }
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(background);
+    SDL_DestroyTexture(img);
 }
 
-void pause(SDL_Window *window)
+int pausemenu(SDL_Window *window)
 {
-    bool mutee=true;
+//    bool mutee=false;
     int xresum=135, yresum=200, w=120;
     int xrestart=390, yrestart=200;
     int xexit=645, yexit=200;
@@ -1535,44 +1771,61 @@ void pause(SDL_Window *window)
         {
             double x=event.motion.x;
             double y=event.motion.y;
-            if (x>=xresum && x<=xresum+w && y>=yresum && y<=yresum+w) //goh bokhorm
+            if (x>=xresum && x<=xresum+w && y>=yresum && y<=yresum+w) //resume
             {
                 SDL_DestroyRenderer(renderer);
                 SDL_FreeSurface(background);
                 SDL_DestroyTexture(img);
-                return;
+                return 1;
 //                map(window);
             }
-            else if (x>=xrestart && x<=xrestart+w && y>=yrestart && y<=yrestart+w) //momkene bekham gohe dg bokhorm!
+            else if (x>=xrestart && x<=xrestart+w && y>=yrestart && y<=yrestart+w)
             {
                 SDL_DestroyRenderer(renderer);
                 SDL_FreeSurface(background);
                 SDL_DestroyTexture(img);
-                menu(window);
+                return 0;
             }
-            else if (x>=xexit && x<=xexit+w && y>=yexit && y<=yexit+w) //momkene bekham gohe dg bokhorm!
+            else if (x>=xexit && x<=xexit+w && y>=yexit && y<=yexit+w) //quit
                 running=false;
-            else if (x>=xsave && x<=xsave+w && y>=ysave && y<=ysave+w) //inja ro bezanm
+            else if (x>=xsave && x<=xsave+w && y>=ysave && y<=ysave+w) //save
             {
-
+                FILE *planc=fopen("plansc.md", "w"), *plan= fopen("plans.md", "r");
+                char harf;
+                char x[4], y[4], r[3], nofa[5], nofp[5];
+                sprintf(nofa, "%d", numberofareas);
+                sprintf(nofa, "%d", numberofplayers);
+                fprintf(planc, "/%d %d\n", numberofareas, numberofplayers);
+                for (int i=0; i<numberofareas; i++)
+                {
+                    fprintf(planc, "%lf %lf %d\n", center[i].x, center[i].y, center[i].target);
+                }
+                while ((harf=fgetc(plan)) != EOF)
+                {
+                    fprintf(planc, "%c", harf);
+//                    printf("%c", harf);
+                }
+                fclose(plan);
+                fclose(planc);
+                remove("plans.md");
+                rename("plansc.md", "plans.md");
             }
-            else if (x>=xmute && x<=xmute+w && y>=ymute && y<=ymute+w) //voice ro bayad bezanm fqt icone alaannnnnn!!!
+            else if (x>=xmute && x<=xmute+w && y>=ymute && y<=ymute+w)//sound
             {
                 if(!mutee)
                 {
                     mutee=true;
                     Mix_PauseMusic();
-                    //Mix_VolumeMusic(0);
                 }
                 else
                 {
                     mutee=false;
                     Mix_ResumeMusic();
-                   // Mix_VolumeMusic(128);
                 }
             }
         }
     }
+    return 0;
 }
 
 int main()
@@ -1580,13 +1833,31 @@ int main()
     srand(time(NULL));
     init();
     SDL_Window *window = SDL_CreateWindow("Maps",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH,SCREEN_HEIGHT,SDL_WINDOW_OPENGL);
-    music1=Mix_LoadMUS("music1.mp3");
-    music2=Mix_LoadMUS("music2.mp3");
-    Mix_OpenAudio(22050," mp3", 2, 2048);
-    //Mix_Music *music1=Mix_LoadMUS("music1.mp3");
-    //Mix_Chunk *running=Mix_LoadWAV("running.wav");
+    Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 );
+    music1=Mix_LoadMUS("music0.mp3");
+    music2=Mix_LoadMUS("music4.mp3");
+//    Mix_PlayMusic( music1, -1 );
 //    map(window);
-    menu(window);
+//    hstart=true;
+//    startmenu(window);
+//    hsettings=true;
+//    settingsmenu(window);
+
+    while (running)
+    {
+        if (hmenu)
+            menu(window);
+        if (hsettings)
+            settingsmenu(window);
+        if (hranking)
+            rankingmenu(window);
+        if (hstart)
+            startmenu(window);
+        if (hmap)
+            map(window);
+//        printf("hello\n");
+    }
+
 //    pause(window);
 //    rankingmenu(window);
     Mix_FreeMusic( music1 );
