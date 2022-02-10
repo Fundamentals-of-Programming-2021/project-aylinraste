@@ -91,7 +91,7 @@ Mix_Music *music2 = NULL;
 bool win=false, lose=false;
 char name[40]="";
 
-bool hmenu=true, hmap=false, hsettings=false, hranking=false, hstart=false, hpause=false;
+bool hmenu=true, hmap=false, hsettings=false, hranking=false, hstart=false, hpause=false, hend=false;
 
 #ifdef main
 #undef main
@@ -1010,14 +1010,23 @@ int map(SDL_Window *window)
     int a = rand() % (SCREEN_WIDTH-50 - s * 2), b = rand() % (SCREEN_HEIGHT-50 - 2 * s) + s * 0.5, c=0, start=-1, end=-1;
     if (maps==0)
     {
+        int m=0;
         double x = a * 1.0, y = b * 1.0;
 //        scanf("%d %d", &numberofareas, &numberofplayers);
         center = malloc(sizeof(struct markaz) * numberofareas);
         makecolors(color);
         printf("hi\n");
         draw(renderer, x, y);
-        while (number<numberofareas)
+        while (number<numberofareas && m<100)
+        {
             generate_random(renderer, x, y);
+            m++;
+        }
+        if (m>=100 && number<numberofareas)
+        {
+            hmap=false;
+            hstart=true;
+        }
     }
     if (maps==3)
     {
@@ -1127,12 +1136,41 @@ int map(SDL_Window *window)
         active_potion();
         if (c%200==100)
             enemy(&start, &end);
-        SDL_RenderPresent(renderer);
+        if (event.type == SDL_MOUSEBUTTONDOWN)
         {
-            if (event.type == SDL_QUIT || win || lose)
+            if (event.motion.x>=xpause && event.motion.x<=xpause+w && event.motion.y>=ypause && event.motion.y<=ypause+w)
+            {
+                SDL_DestroyRenderer(renderer);
+                int chi=pausemenu(window);
+                if (chi==1)
+                {
+                    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+                    img = SDL_CreateTextureFromSurface(renderer, background);
+                    aks = SDL_CreateTextureFromSurface(renderer, pause);
+                }
+                if (chi==0)
+                {
+                    printf("running:%d\n", running);
+                    hmap=false;
+                    hend=true;
+                }
+            }
+            else
+                saveclick(event.motion.x, event.motion.y, &start, &end);
+        }
+        SDL_RenderPresent(renderer);
+        if (event.type == SDL_QUIT )
+            running=false;
+        {
+            if ( win || lose || hend)
             {
                 printf("win:%d lose:%d\n", win, lose);
-                running=false;
+                if (win || lose)
+                {
+                    hmap=false;
+                    hend=true;
+                    SDL_DestroyRenderer(renderer);
+                }
                 FILE *scoresf=fopen("scores1.md", "w"), *scoresi= fopen("scores.md", "r");
 
                 char harf= fgetc(scoresi);
@@ -1165,7 +1203,7 @@ int map(SDL_Window *window)
                             {
                                 nlose++;
                             }
-                            if (event.type == SDL_QUIT)
+                            else
                             {
                                 ndraw++;
                             }
@@ -1189,7 +1227,7 @@ int map(SDL_Window *window)
                         fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 1, 0, -1);
                     }
 //                if (event.type == SDL_QUIT)
-                    else
+                    else if (!hmap)
                     {
                         fprintf(scoresf, "%s/%d %d %d %d\n", name, 0, 0, 1, 0);
                     }
@@ -1205,28 +1243,6 @@ int map(SDL_Window *window)
             }
         }
         generate_soldier(c);
-        if (event.type == SDL_MOUSEBUTTONDOWN)
-        {
-            if (event.motion.x>=xpause && event.motion.x<=xpause+w && event.motion.y>=ypause && event.motion.y<=ypause+w)
-            {
-                SDL_DestroyRenderer(renderer);
-                int chi=pausemenu(window);
-                if (chi==1)
-                {
-                    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-                    img = SDL_CreateTextureFromSurface(renderer, background);
-                    aks = SDL_CreateTextureFromSurface(renderer, pause);
-                }
-                if (chi==0)
-                {
-                    printf("running:%d\n", running);
-                    hmap=false;
-                    hmenu=true;
-                }
-            }
-            else
-                saveclick(event.motion.x, event.motion.y, &start, &end);
-        }
     }
     printf("man\n");
     SDL_DestroyTexture(img);
@@ -1925,6 +1941,92 @@ int pausemenu(SDL_Window *window)
     return 0;
 }
 
+void endmenu(SDL_Window *window)
+{
+//    int xresum=135, yresum=200, w=120;
+    int xhappy=235, yhappy=157, ww=442, hh=275;
+//    int xsad=300, ysad=130;
+    int xrestart=250, yrestart=450, w=100;
+    int xexit=550, yexit=450;
+//    win=true;
+//lose=true;
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+
+    SDL_Rect andaze = {0, 0 , SCREEN_WIDTH , SCREEN_HEIGHT};
+    SDL_Surface *background = SDL_LoadBMP("backgroundend.bmp");
+    SDL_Texture *img = SDL_CreateTextureFromSurface(renderer, background);
+
+    SDL_Rect size = {xrestart, yrestart , w , w};
+    SDL_Surface *restart = SDL_LoadBMP("restart.bmp");
+    SDL_Texture *aks = SDL_CreateTextureFromSurface(renderer, restart);
+
+    SDL_Rect size1 = {xexit, yexit , w , w};
+    SDL_Surface *exit = SDL_LoadBMP("exit.bmp");
+    SDL_Texture *aks1 = SDL_CreateTextureFromSurface(renderer, exit);
+
+    SDL_Rect size2 = {xhappy, yhappy , ww , hh};
+    SDL_Surface *happy = SDL_LoadBMP("happy.bmp");
+    SDL_Texture *aks2 = SDL_CreateTextureFromSurface(renderer, happy);
+
+    SDL_Surface *sad = SDL_LoadBMP("sad.bmp");
+    SDL_Texture *aks3 = SDL_CreateTextureFromSurface(renderer, sad);
+
+    SDL_Surface *nothing = SDL_LoadBMP("nothing.bmp");
+    SDL_Texture *aks4 = SDL_CreateTextureFromSurface(renderer, nothing);
+
+    SDL_Event event;
+    int c=0;
+    while (running && hend)
+    {
+        c++;
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, img, NULL, &andaze);
+//        if (!mutee)
+//            SDL_RenderCopy(renderer, aks, NULL, &size);
+//        else
+//            SDL_RenderCopy(renderer, akssssss, NULL, &sizeeeeee);
+//        SDL_RenderCopy(renderer, akss, NULL, &sizee);
+        SDL_RenderCopy(renderer, aks, NULL, &size);
+        SDL_RenderCopy(renderer, aks1, NULL, &size1);
+//        SDL_RenderCopy(renderer, aksssss, NULL, &sizeeeee);
+        if (win)
+        {
+            SDL_RenderCopy(renderer, aks2, NULL, &size2);
+            text(renderer, 360, 50, "YOU WON!", 56, 40, 70, 200, 255);
+        }
+        else if (lose)
+        {
+            SDL_RenderCopy(renderer, aks3, NULL, &size2);
+            text(renderer, 360, 50, "YOU LOST!", 56, 40, 70, 200, 255);
+        }
+        else
+        {
+            SDL_RenderCopy(renderer, aks4, NULL, &size2);
+            text(renderer, 345, 50, "GAME ENDED!", 56, 40, 70, 200, 255);
+        }
+        SDL_PollEvent(&event);
+        SDL_RenderPresent(renderer);
+        if (event.type == SDL_QUIT)
+            running=false;
+        if (event.type==SDL_MOUSEBUTTONDOWN)
+        {
+            double x = event.motion.x;
+            double y = event.motion.y;
+            if (x >= xrestart && x <= xrestart + w && y >= yrestart && y <= yrestart + w)
+            {
+                hend=false;
+                hmenu=true;
+            }
+            else if (x >= xexit && x <= xexit + w && y >= yexit && y <= yexit + w) //quit
+                running = false;
+        }
+    }
+
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(background);
+    SDL_DestroyTexture(img);
+}
+
 int main()
 {
     srand(time(NULL));
@@ -1937,8 +2039,9 @@ int main()
 //    map(window);
 //    hstart=true;
 //    startmenu(window);
-//    hsettings=true;
-//    settingsmenu(window);
+//    hend=true;
+//    endmenu(window);
+
 
     while (running)
     {
@@ -1952,6 +2055,8 @@ int main()
             startmenu(window);
         if (hmap)
             map(window);
+        if (hend)
+            endmenu(window);
 //        printf("hello\n");
     }
 
