@@ -18,5 +18,5 @@ link_directories(${SDL_TTF_DIR}/lib/)
 link_directories(${SDL_IMAGE_DIR}/lib/)
 link_directories(${SDL_MIXER_DIR}/lib/)
 
-add_executable(untitled main.c map.c map.h)
+add_executable(untitled main.c functions.c functions.h menus.c menus.h)
 target_link_libraries(untitled m SDL2 SDL2_gfx SDL2_image SDL2_ttf SDL2_mixer)
