@@ -406,8 +406,11 @@ void generate_soldier(int c)
 
 void addattail(struct sarbaz *head, double x0, double y0, int i)
 {
-    if (bazi[i].counter==bazi[i].nsarbaz)
+    if (bazi[i].counter==bazi[i].nsarbaz|| center[bazi[i].s].color!=bazi[i].start.color || center[bazi[i].s].soldiers<=0)
+    {
+        bazi[i].halat=false;
         return;
+    }
     while(head->next != NULL)
         head = head->next;
     head->next = (struct sarbaz*)(malloc(sizeof(struct sarbaz)));
@@ -487,13 +490,13 @@ int checknakon(struct sarbaz *head, int i)
 
 void hamle(SDL_Renderer *renderer, int c, int i)
 {
-    if ((bazi[i].counter==bazi[i].nsarbaz || center[bazi[i].s].soldiers<=0) && bazi[i].head==NULL || center[bazi[i].s].color!=bazi[i].start.color)
+    if ((bazi[i].counter==bazi[i].nsarbaz ) && bazi[i].head==NULL)
     {
         bazi[i].nsarbaz=0;
         center[bazi[i].s].on=false;
         return;
     }
-    if (bazi[i].counter==0 || bazi[i].head==NULL)
+    if ((bazi[i].counter==0 || bazi[i].head==NULL) && bazi[i].halat )
     {
         bazi[i].head = (struct sarbaz*)(malloc(sizeof(struct sarbaz)));
         bazi[i].head->x = bazi[i].start.x;
@@ -502,9 +505,9 @@ void hamle(SDL_Renderer *renderer, int c, int i)
         bazi[i].counter++;
         center[bazi[i].s].soldiers--;
     }
-    if (checkkon(bazi[i].head, i))
+    if (bazi[i].halat && checkkon(bazi[i].head, i) )
         addattail(bazi[i].head, bazi[i].start.x, bazi[i].start.y, i);
-    if (!checknakon(bazi[i].head, i))
+    if (bazi[i].head!=NULL && !checknakon(bazi[i].head, i))
         bazi[i].head= delete_from_head(bazi[i].head, i);
     ziadkon(bazi[i].head, i);
     faal(i);
@@ -577,6 +580,7 @@ void startfight(int *start, int *end)
     bazi[i].end=center[*end];
     bazi[i].s=*start;
     bazi[i].e=*end;
+    bazi[i].halat=true;
     if (!center[*end].x-center[*start].x)
         bazi[i].shib=(center[*end].y-center[*start].y)/(center[*end].x-center[*start].x);
     else
@@ -884,6 +888,7 @@ void insialize()
     {
         bazi[i].head = NULL;
         bazi[i].nsarbaz=0;
+        bazi[i].halat=false;
     }
     majoon.whichone=1;
     potion1.color=0;

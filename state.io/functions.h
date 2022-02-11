@@ -32,6 +32,7 @@ struct fight
     int nsarbaz;
     int counter;
     struct sarbaz *head;
+    bool halat;
 };
 
 struct potion
